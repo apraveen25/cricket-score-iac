@@ -1,0 +1,43 @@
+# terraform.tfvars.example
+#
+# Copy to terraform.tfvars (kept OUT of source control — see .gitignore) OR
+# use one of the environment files under `environments/` via `-var-file`.
+
+project        = "cricket"
+environment    = "dev"
+location       = "centralus"
+location_short = "cus"
+
+vnet_address_space = ["10.20.0.0/16"]
+
+subnets = {
+  app = {
+    address_prefixes        = ["10.20.1.0/24"]
+    delegate_to_app_service = true
+  }
+  data = {
+    address_prefixes = ["10.20.2.0/24"]
+  }
+  integration = {
+    address_prefixes = ["10.20.3.0/24"]
+  }
+}
+
+app_service_sku   = "B1"
+dotnet_version    = "8.0"
+
+cosmos_throughput         = 400
+cosmos_database_name      = "appdb"
+cosmos_container_name     = "items"
+cosmos_partition_key_path = "/pk"
+
+servicebus_sku               = "Standard"
+servicebus_queue_name        = "orders"
+servicebus_max_delivery_count = 10
+
+static_web_app_sku  = "Free"
+allowed_cors_origins = []
+
+tags = {
+  application = "cricket-score"
+}

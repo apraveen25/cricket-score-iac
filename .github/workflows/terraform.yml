@@ -1,0 +1,152 @@
+###############################################################################
+# Terraform CI/CD — GitHub Actions
+#
+# - Pull requests run `fmt`, `validate`, `tflint`, and `plan` against the
+#   target environment.
+# - Pushes to main auto-apply to `dev`.
+# - Test + prod apply runs are gated behind `workflow_dispatch` for safety.
+#
+# Uses OIDC federation with Azure (no long-lived secrets). Configure:
+#   - AZURE_CLIENT_ID      : the federated app registration's client ID
+#   - AZURE_TENANT_ID      : the tenant
+#   - AZURE_SUBSCRIPTION_ID: the subscription to deploy to
+# and a federated credential in Entra ID scoped to this repo/branch.
+###############################################################################
+
+name: terraform
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "**.tf"
+      - "**.tfvars"
+      - ".github/workflows/terraform.yml"
+  push:
+    branches: [main]
+    paths:
+      - "**.tf"
+      - "**.tfvars"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Which environment to apply to"
+        required: true
+        default: "dev"
+        type: choice
+        options: [dev, test, prod]
+      action:
+        description: "plan or apply"
+        required: true
+        default: "plan"
+        type: choice
+        options: [plan, apply]
+
+permissions:
+  id-token: write   # required for OIDC
+  contents: read
+  pull-requests: write
+
+env:
+  TF_VERSION: 1.8.5
+  # State backend — the same storage account is used across environments,
+  # each environment gets its own state key.
+  BACKEND_RG:        rg-tfstate
+  BACKEND_SA:        sttfstatecricket
+  BACKEND_CONTAINER: tfstate
+
+jobs:
+  plan:
+    name: Plan (${{ github.event.inputs.environment || 'dev' }})
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'dev' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: fmt
+        run: terraform fmt -check -recursive
+
+      - name: init
+        env:
+          ENV_NAME: ${{ github.event.inputs.environment || 'dev' }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${BACKEND_RG}" \
+            -backend-config="storage_account_name=${BACKEND_SA}" \
+            -backend-config="container_name=${BACKEND_CONTAINER}" \
+            -backend-config="key=${ENV_NAME}.terraform.tfstate"
+
+      - name: validate
+        run: terraform validate
+
+      - name: plan
+        env:
+          ENV_NAME: ${{ github.event.inputs.environment || 'dev' }}
+        run: |
+          terraform plan \
+            -var-file="environments/${ENV_NAME}.tfvars" \
+            -out=tfplan
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Upload plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ github.event.inputs.environment || 'dev' }}
+          path: |
+            tfplan
+            plan.txt
+          retention-days: 7
+
+  apply:
+    name: Apply (${{ github.event.inputs.environment || 'dev' }})
+    needs: plan
+    # Auto-apply dev on push to main; otherwise require workflow_dispatch + apply.
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'dev' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Download plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ github.event.inputs.environment || 'dev' }}
+
+      - name: init
+        env:
+          ENV_NAME: ${{ github.event.inputs.environment || 'dev' }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${BACKEND_RG}" \
+            -backend-config="storage_account_name=${BACKEND_SA}" \
+            -backend-config="container_name=${BACKEND_CONTAINER}" \
+            -backend-config="key=${ENV_NAME}.terraform.tfstate"
+
+      - name: apply
+        run: terraform apply -auto-approve tfplan

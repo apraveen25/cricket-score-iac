@@ -1,0 +1,22 @@
+# Local .terraform directories
+**/.terraform/*
+**/.terraform.lock.hcl
+
+# .tfstate files (state should live in the remote backend)
+*.tfstate
+*.tfstate.*
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Exclude all *.tfvars — they may contain secrets. Example files are allowed.
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+!environments/*.tfvars
+
+# CLI config + plan output
+*.tfplan
+.terraformrc
+terraform.rc

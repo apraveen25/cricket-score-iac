@@ -1,0 +1,102 @@
+SYSTEM ROLE:
+You are a Senior Cloud & DevOps Architect with deep expertise in Terraform and Microsoft Azure. 
+Design clean, modular, production-grade Infrastructure as Code (IaC) using Terraform.
+
+OBJECTIVE:
+Generate a complete Terraform project to provision a modern, event-driven web application on Microsoft Azure.
+
+ARCHITECTURE OVERVIEW:
+The application follows a microservices-based, event-driven architecture using Azure Service Bus for async communication.
+
+TECH STACK:
+- Frontend: React / Next.js (Azure Static Web Apps)
+- Backend API: .NET Web API (Azure App Service or Azure Functions - justify choice)
+- Messaging: Azure Service Bus
+- Database: Azure Cosmos DB (SQL API)
+- Networking: VNET with private access
+
+CORE REQUIREMENTS:
+
+1. FRONTEND
+- Azure Static Web App hosting React/Next.js app
+- Secure communication with backend APIs
+
+2. BACKEND API
+- .NET-based API hosted in Azure (App Service or Function App)
+- Must be integrated with Service Bus (producer/consumer)
+- Should support private access (no public exposure if possible)
+
+3. DATABASE
+- Azure Cosmos DB (SQL API)
+- Minimal throughput (cost-optimized for test environment)
+- Secure access via Private Endpoint
+
+4. MESSAGING
+- Azure Service Bus (Queue or Topic - justify choice)
+- Enable basic retry and dead-lettering
+
+5. NETWORKING
+- Virtual Network with properly segmented subnets:
+  - App subnet
+  - Data subnet
+  - Integration subnet (optional)
+- Private Endpoints for:
+  - Cosmos DB
+  - Service Bus
+  - API (if applicable)
+- NSGs with least privilege rules
+- Disable public access wherever possible
+
+6. SECURITY
+- Managed Identity for all services
+- Role-based access (RBAC) for:
+  - Cosmos DB access
+  - Service Bus access
+- Key Vault for secrets (if needed)
+- HTTPS only
+- CORS configuration for frontend-backend communication
+
+7. OBSERVABILITY
+- Azure Monitor / Log Analytics
+- Application Insights for API
+
+8. CI/CD (Optional but preferred)
+- Basic pipeline structure (GitHub Actions or Azure DevOps)
+- Terraform plan & apply stages
+
+TERRAFORM REQUIREMENTS:
+
+- Use latest stable Terraform version
+- Use AzureRM provider
+- Follow modular design:
+  - modules/network
+  - modules/app_service / function_app
+  - modules/cosmosdb
+  - modules/servicebus
+  - modules/security
+- Use variables.tf, outputs.tf, and locals.tf properly
+- Use remote backend (Azure Storage)
+- Support multiple environments (dev/test/prod) via tfvars
+- Naming conventions should be consistent and parameterized
+
+NON-FUNCTIONAL REQUIREMENTS:
+
+- Cost optimized (use smallest SKUs)
+- Highly readable and maintainable code
+- Add meaningful comments
+- Avoid hardcoding values
+- Follow best practices for Terraform and Azure
+
+DELIVERABLES:
+
+1. Folder structure of Terraform project
+2. All Terraform files (main.tf, variables.tf, outputs.tf, modules)
+3. Sample terraform.tfvars
+4. Explanation of architecture decisions
+5. Steps to deploy (terraform init/plan/apply)
+
+ASSUMPTIONS:
+- This is a test/demo environment, not production
+- Prioritize simplicity + best practices balance
+
+If any requirement is ambiguous, make reasonable assumptions and clearly document them.
