@@ -26,8 +26,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# Short numeric suffix for global uniqueness (last 5 of the epoch second).
-$suffix         = [string]([int][double]::Parse((Get-Date -UFormat %s))).Substring(5)
+# Short numeric suffix for global uniqueness. Get-Random is locale-safe and
+# gives a 5-digit number; storage account names must be 3-24 chars, lowercase
+# alphanumeric only, so the "sttfstatecricket" prefix (16 chars) + 5 digits
+# = 21 chars, well within the limit.
+$suffix         = Get-Random -Minimum 10000 -Maximum 100000
 $StorageAccount = "sttfstatecricket$suffix"
 
 Write-Host "Creating resource group $ResourceGroup in $Location..." -ForegroundColor Cyan

@@ -65,7 +65,7 @@ resource "azurerm_servicebus_queue" "this" {
 # level is simpler for a single-queue setup.
 ###############################################################################
 resource "azurerm_role_assignment" "sb_data_owner" {
-  for_each = toset(var.rbac_principal_ids)
+  for_each = { for i, v in var.rbac_principal_ids : tostring(i) => v }
 
   scope                = azurerm_servicebus_namespace.this.id
   role_definition_name = "Azure Service Bus Data Owner"

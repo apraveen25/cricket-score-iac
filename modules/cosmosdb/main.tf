@@ -76,7 +76,7 @@ resource "azurerm_cosmosdb_sql_container" "this" {
 # correct way to grant read/write access when local auth is disabled.
 ###############################################################################
 resource "azurerm_cosmosdb_sql_role_assignment" "data_contributor" {
-  for_each = toset(var.rbac_principal_ids)
+  for_each = { for i, v in var.rbac_principal_ids : tostring(i) => v }
 
   resource_group_name = var.resource_group_name
   account_name        = azurerm_cosmosdb_account.this.name

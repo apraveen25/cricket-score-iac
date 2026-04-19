@@ -58,9 +58,12 @@ resource "azurerm_linux_web_app" "this" {
       dotnet_version = var.dotnet_version
     }
 
-    cors {
-      allowed_origins     = var.allowed_cors_origins
-      support_credentials = false
+    dynamic "cors" {
+      for_each = length(var.allowed_cors_origins) > 0 ? [1] : []
+      content {
+        allowed_origins     = var.allowed_cors_origins
+        support_credentials = false
+      }
     }
   }
 
