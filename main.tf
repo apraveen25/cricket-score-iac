@@ -139,7 +139,7 @@ module "app_service" {
   vnet_integration_subnet_id = module.network.subnet_ids["app"]
 
   # Private endpoint for inbound traffic from the VNET only.
-  private_endpoint_subnet_id = module.network.subnet_ids["app"]
+  private_endpoint_subnet_id = module.network.subnet_ids["data"]
   private_dns_zone_id        = module.network.private_dns_zone_ids["appservice"]
 
   # Use the pre-created user-assigned identity so the API can access Cosmos / SB.
