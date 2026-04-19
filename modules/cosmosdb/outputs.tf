@@ -13,7 +13,7 @@ output "database_name" {
   value       = azurerm_cosmosdb_sql_database.this.name
 }
 
-output "container_name" {
-  description = "SQL container name."
-  value       = azurerm_cosmosdb_sql_container.this.name
+output "container_names" {
+  description = "Names of all SQL containers created."
+  value       = [for c in azurerm_cosmosdb_sql_container.this : c.name]
 }
