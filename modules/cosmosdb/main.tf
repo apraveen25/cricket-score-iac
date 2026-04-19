@@ -60,11 +60,13 @@ resource "azurerm_cosmosdb_sql_database" "this" {
 }
 
 resource "azurerm_cosmosdb_sql_container" "this" {
-  name                  = var.container_name
+  for_each = { for c in var.containers : c.name => c }
+
+  name                  = each.value.name
   resource_group_name   = var.resource_group_name
   account_name          = azurerm_cosmosdb_account.this.name
   database_name         = azurerm_cosmosdb_sql_database.this.name
-  partition_key_paths   = [var.partition_key_path]
+  partition_key_paths   = [each.value.partition_key_path]
   partition_key_version = 2
 }
 

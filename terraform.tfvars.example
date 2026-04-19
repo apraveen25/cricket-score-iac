@@ -28,8 +28,13 @@ dotnet_version    = "8.0"
 
 cosmos_throughput         = 400
 cosmos_database_name      = "appdb"
-cosmos_container_name     = "items"
-cosmos_partition_key_path = "/pk"
+cosmos_containers = [
+  { name = "users",      partition_key_path = "/id"      },
+  { name = "teams",      partition_key_path = "/id"      },
+  { name = "matches",    partition_key_path = "/id"      },
+  { name = "innings",    partition_key_path = "/matchId" },
+  { name = "deliveries", partition_key_path = "/matchId" },
+]
 
 servicebus_sku               = "Standard"
 servicebus_queue_name        = "orders"

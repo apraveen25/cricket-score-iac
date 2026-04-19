@@ -84,8 +84,7 @@ module "cosmosdb" {
   location            = azurerm_resource_group.this.location
   account_name        = "${local.cosmos_account_name}-${random_string.suffix.result}"
   database_name       = var.cosmos_database_name
-  container_name      = var.cosmos_container_name
-  partition_key_path  = var.cosmos_partition_key_path
+  containers          = var.cosmos_containers
   throughput          = var.cosmos_throughput
 
   private_endpoint_subnet_id = module.network.subnet_ids["data"]
@@ -151,7 +150,6 @@ module "app_service" {
     "ASPNETCORE_ENVIRONMENT"                = var.environment
     "CosmosDb__Endpoint"                    = module.cosmosdb.endpoint
     "CosmosDb__DatabaseName"                = var.cosmos_database_name
-    "CosmosDb__ContainerName"               = var.cosmos_container_name
     "ServiceBus__FullyQualifiedNamespace"   = module.servicebus.fully_qualified_namespace
     "ServiceBus__QueueName"                 = var.servicebus_queue_name
     "AzureAd__ManagedIdentityClientId"      = module.security.api_identity_client_id

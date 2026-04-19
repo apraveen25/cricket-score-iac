@@ -18,14 +18,12 @@ variable "database_name" {
   type        = string
 }
 
-variable "container_name" {
-  description = "SQL container name."
-  type        = string
-}
-
-variable "partition_key_path" {
-  description = "Partition key path (must start with `/`)."
-  type        = string
+variable "containers" {
+  description = "SQL containers to create. Each entry needs a name and a partition key path."
+  type = list(object({
+    name               = string
+    partition_key_path = string
+  }))
 }
 
 variable "throughput" {

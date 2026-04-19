@@ -113,16 +113,19 @@ variable "cosmos_database_name" {
   default     = "appdb"
 }
 
-variable "cosmos_container_name" {
-  description = "Cosmos SQL container name."
-  type        = string
-  default     = "items"
-}
-
-variable "cosmos_partition_key_path" {
-  description = "Partition key path for the Cosmos container."
-  type        = string
-  default     = "/pk"
+variable "cosmos_containers" {
+  description = "Cosmos SQL containers to create. Each entry needs a name and a partition key path."
+  type = list(object({
+    name               = string
+    partition_key_path = string
+  }))
+  default = [
+    { name = "users",      partition_key_path = "/id"      },
+    { name = "teams",      partition_key_path = "/id"      },
+    { name = "matches",    partition_key_path = "/id"      },
+    { name = "innings",    partition_key_path = "/matchId" },
+    { name = "deliveries", partition_key_path = "/matchId" },
+  ]
 }
 
 ###############################################################################
